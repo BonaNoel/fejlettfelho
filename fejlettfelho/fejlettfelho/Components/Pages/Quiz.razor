@@ -1,0 +1,79 @@
+﻿@page "/quiz"
+
+<div class="quiz-container">
+    <div class="quiz-question">
+        <h2>@currentQuestion?.Text</h2>
+    </div>
+
+    <div class="quiz-options">
+        @foreach (var option in currentQuestion?.Options ?? Enumerable.Empty<string>())
+        {
+            <button class="quiz-option-btn"
+                    disabled="@hasAnswered"
+                    @onclick="() => SubmitAnswer(option)">
+                @option
+            </button>
+        }
+    </div>
+
+    @if (hasAnswered)
+    {
+        <div class="quiz-feedback">
+            @if (isCorrect)
+            {
+                <p class="correct">✅ Correct!</p>
+            }
+            else
+            {
+                <p class="incorrect">❌ Incorrect. Correct answer: @currentQuestion?.Answer</p>
+            }
+
+            <button class="next-btn" @onclick="LoadNextQuestion">Next</button>
+        </div>
+    }
+</div>
+
+@code {
+    private QuizQuestion? currentQuestion;
+    private bool hasAnswered = false;
+    private bool isCorrect = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNextQuestion();
+    }
+
+    private async Task LoadNextQuestion()
+    {
+        hasAnswered = false;
+        isCorrect = false;
+
+        // Placeholder: Replace this with an actual API call to your Python backend
+        currentQuestion = await GetQuizQuestionFromAI();
+        StateHasChanged();
+    }
+
+    private void SubmitAnswer(string selectedOption)
+    {
+        hasAnswered = true;
+        isCorrect = selectedOption == currentQuestion?.Answer;
+    }
+
+    private Task<QuizQuestion> GetQuizQuestionFromAI()
+    {
+        // Placeholder question — replace this with your Python API call
+        return Task.FromResult(new QuizQuestion
+            {
+                Text = "Which movie won the Best Picture Oscar in 1994?",
+                Options = new List<string> { "Forrest Gump", "Pulp Fiction", "The Shawshank Redemption", "Four Weddings and a Funeral" },
+                Answer = "Forrest Gump"
+            });
+    }
+
+    private class QuizQuestion
+    {
+        public string Text { get; set; } = "";
+        public List<string> Options { get; set; } = new();
+        public string Answer { get; set; } = "";
+    }
+}

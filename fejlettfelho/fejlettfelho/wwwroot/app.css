@@ -58,3 +58,144 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    margin: 20px auto;
+    max-width: 800px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+.chat-header {
+    background-color: #333;
+    color: white;
+    padding: 1rem;
+    border-radius: 10px 10px 0 0;
+}
+
+.chat-box {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+.messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    max-width: 70%;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+    .message.user {
+        align-self: flex-end;
+        background-color: #4e91fc;
+        color: white;
+    }
+
+    .message.ai {
+        align-self: flex-start;
+        background-color: #eee;
+        color: black;
+    }
+
+.chat-input {
+    display: flex;
+    padding: 1rem;
+    background: #fff;
+    border-top: 1px solid #ccc;
+    border-radius: 0 0 10px 10px;
+}
+
+    .chat-input textarea {
+        flex: 1;
+        padding: 10px;
+        resize: none;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .chat-input button {
+        margin-left: 10px;
+        padding: 10px 20px;
+        background-color: #4e91fc;
+        border: none;
+        color: white;
+        border-radius: 5px;
+    }
+
+.quiz-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 90vh;
+    background: #f4f4f4;
+    padding: 20px;
+    text-align: center;
+}
+
+.quiz-question h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.quiz-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.quiz-option-btn {
+    background-color: #4e91fc;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+    .quiz-option-btn:hover {
+        background-color: #2f6fe0;
+    }
+
+    .quiz-option-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+.quiz-feedback {
+    margin-top: 20px;
+    font-size: 1.2rem;
+}
+
+.correct {
+    color: green;
+}
+
+.incorrect {
+    color: red;
+}
+
+.next-btn {
+    margin-top: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
