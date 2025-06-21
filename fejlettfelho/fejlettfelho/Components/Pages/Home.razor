@@ -1,0 +1,239 @@
+@page "/"
+@inject OmdbService OmdbService
+@inject AiService AiService
+@rendermode InteractiveServer
+
+<PageTitle>Movie Hub - AI Assistant</PageTitle>
+
+<div class="home-container">
+    <div class="hero-section">
+        <h1 class="display-4 text-center mb-4">🎬 Movie Hub</h1>
+        <p class="lead text-center mb-5">Discover movies, get AI insights, and explore the world of cinema</p>
+    </div>
+
+    <div class="search-section mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="input-group input-group-lg">
+                    <input type="text" class="form-control" @bind="searchQuery" @onkeypress="HandleSearchKeyPress" 
+                           placeholder="Search for movies, actors, or ask me anything about cinema...">
+                    <button class="btn btn-primary" @onclick="HandleSearch" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (searchResults.Any())
+    {
+        <div class="search-results mb-5">
+            <h3>Search Results</h3>
+            <div class="row">
+                @foreach (var movie in searchResults.Take(6))
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card movie-card h-100">
+                            @if (!string.IsNullOrEmpty(movie.Poster) && movie.Poster != "N/A")
+                            {
+                                <img src="@movie.Poster" class="card-img-top movie-poster" alt="@movie.Title">
+                            }
+                            else
+                            {
+                                <div class="card-img-top movie-poster-placeholder d-flex align-items-center justify-content-center">
+                                    <span class="text-muted">No Poster</span>
+                                </div>
+                            }
+                            <div class="card-body">
+                                <h5 class="card-title">@movie.Title</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">@movie.Year</small><br>
+                                    @if (!string.IsNullOrEmpty(movie.Type))
+                                    {
+                                        <span class="badge bg-secondary">@movie.Type</span>
+                                    }
+                                </p>
+                                <button class="btn btn-outline-primary btn-sm" @onclick="() => GetMovieDetails(movie.Title)">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (selectedMovie != null && !string.IsNullOrEmpty(selectedMovie.Title))
+    {
+        <div class="movie-details mb-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3>@selectedMovie.Title (@selectedMovie.Year)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if (!string.IsNullOrEmpty(selectedMovie.Poster) && selectedMovie.Poster != "N/A")
+                        {
+                            <div class="col-md-3">
+                                <img src="@selectedMovie.Poster" class="img-fluid rounded" alt="@selectedMovie.Title">
+                            </div>
+                        }
+                        <div class="col-md-9">
+                            <p><strong>Director:</strong> @selectedMovie.Director</p>
+                            <p><strong>Actors:</strong> @selectedMovie.Actors</p>
+                            <p><strong>Genre:</strong> @selectedMovie.Genre</p>
+                            <p><strong>Runtime:</strong> @selectedMovie.Runtime</p>
+                            <p><strong>Released:</strong> @selectedMovie.Released</p>
+                            @if (!string.IsNullOrEmpty(selectedMovie.Rating))
+                            {
+                                <p><strong>Rating:</strong> @selectedMovie.Rating</p>
+                            }
+                            @if (!string.IsNullOrEmpty(selectedMovie.Plot))
+                            {
+                                <p><strong>Plot:</strong> @selectedMovie.Plot</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(aiResponse))
+    {
+        <div class="ai-response mb-5">
+            <div class="card">
+                <div class="card-header">
+                    <h4>🤖 AI Assistant Response</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@aiResponse</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🎭 Popular Movies</h5>
+                        <p class="card-text">Discover trending and popular films</p>
+                        <button class="btn btn-primary" @onclick="() => SearchPopularMovies()">Explore</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">💬 AI Chat</h5>
+                        <p class="card-text">Chat with our AI about movies</p>
+                        <a href="/chat" class="btn btn-primary">Start Chat</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🎲 Movie Quiz</h5>
+                        <p class="card-text">Test your movie knowledge</p>
+                        <a href="/quiz" class="btn btn-primary">Take Quiz</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string searchQuery = "";
+    private List<Movie> searchResults = new();
+    private Movie? selectedMovie = null;
+    private string aiResponse = "";
+    private bool isLoading = false;
+
+    private async Task HandleSearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery)) return;
+
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Check if this looks like a movie search or a question
+            if (IsQuestion(searchQuery))
+            {
+                // Send to AI for general movie questions
+                aiResponse = await AiService.GetMovieAiResponseAsync(searchQuery);
+                searchResults.Clear();
+                selectedMovie = null;
+            }
+            else
+            {
+                // Search for movies
+                var result = await OmdbService.SearchMoviesAsync(searchQuery);
+                searchResults = result.Search ?? new List<Movie>();
+                aiResponse = "";
+                selectedMovie = null;
+            }        }
+        catch (Exception)
+        {
+            aiResponse = "Sorry, something went wrong while processing your request.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleSearchKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await HandleSearch();
+        }
+    }
+
+    private async Task GetMovieDetails(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return;
+
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            selectedMovie = await OmdbService.GetMovieByTitleAsync(title);
+        }
+        catch (Exception)
+        {
+            selectedMovie = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SearchPopularMovies()
+    {
+        searchQuery = "Marvel";
+        await HandleSearch();
+    }
+
+    private bool IsQuestion(string query)
+    {
+        var questionWords = new[] { "what", "who", "when", "where", "why", "how", "tell me", "explain", "recommend" };
+        return questionWords.Any(word => query.ToLower().Contains(word)) || query.Contains("?");
+    }
+}

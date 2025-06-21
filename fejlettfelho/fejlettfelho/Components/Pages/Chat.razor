@@ -1,17 +1,55 @@
 ﻿@page "/chat"
+@inject AiService AiService
+@rendermode InteractiveServer
+
+<PageTitle>Movie Chat - AI Assistant</PageTitle>
 
 <div class="chat-container">
     <div class="chat-header">
-        <h3>AI Chat</h3>
+        <h3>🤖 Movie AI Assistant</h3>
+        <p class="text-muted">Ask me anything about movies, actors, directors, or get recommendations!</p>
     </div>
 
     <div class="chat-box">
         <div class="messages" id="messages">
+            @if (!messages.Any())
+            {
+                <div class="message ai">
+                    <div class="message-content">
+                        <strong>AI Assistant:</strong> Hello! I'm your movie AI assistant. You can ask me about:
+                        <ul class="mt-2">
+                            <li>Movie recommendations</li>
+                            <li>Actor and director information</li>
+                            <li>Plot summaries and reviews</li>
+                            <li>Box office information</li>
+                            <li>Movie trivia and awards</li>
+                        </ul>
+                        What would you like to know?
+                    </div>
+                </div>
+            }
             @foreach (var message in messages)
             {
                 <div class="message @(message.IsUser ? "user" : "ai")">
                     <div class="message-content">
-                        @message.Text
+                        @if (!message.IsUser)
+                        {
+                            <strong>AI:</strong>
+                        }
+                        <span class="message-text">@message.Text</span>
+                        <div class="message-time">@message.Timestamp.ToString("HH:mm")</div>
+                    </div>
+                </div>
+            }
+            @if (isTyping)
+            {
+                <div class="message ai">
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </div>
                 </div>
             }
@@ -19,46 +57,178 @@
     </div>
 
     <div class="chat-input">
-        <textarea @bind="userMessage" placeholder="Type your message..." @onkeydown="HandleKeyDown"></textarea>
-        <button @onclick="SendMessage">Send</button>
+        <div class="input-group">
+            <textarea @bind="userMessage" 
+                     @onkeydown="HandleKeyDown" 
+                     placeholder="Ask about movies, actors, directors..."
+                     class="form-control"
+                     rows="2"
+                     disabled="@isTyping"></textarea>
+            <button class="btn btn-primary" @onclick="SendMessage" disabled="@(isTyping || string.IsNullOrWhiteSpace(userMessage))">
+                @if (isTyping)
+                {
+                    <span class="spinner-border spinner-border-sm"></span>
+                }
+                else
+                {
+                    <span>Send</span>
+                }
+            </button>
+        </div>        <div class="quick-questions mt-2">
+            <small class="text-muted">Quick questions:</small>
+            <div class="d-flex flex-wrap gap-2 mt-1">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetQuickQuestion(@"Recommend me a good action movie")">Action Movies</button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetQuickQuestion(@"Tell me about Christopher Nolan")">Directors</button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetQuickQuestion(@"What are the best movies of 2023?")">Recent Movies</button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetQuickQuestion(@"Explain the Marvel Cinematic Universe")">Marvel</button>
+            </div>
+        </div>
     </div>
 </div>
 
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        height: 80vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        padding: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+        background-color: #f8f9fa;
+    }
+
+    .chat-box {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: #ffffff;
+    }
+
+    .messages {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .message {
+        display: flex;
+        margin-bottom: 1rem;
+    }
+
+    .message.user {
+        justify-content: flex-end;
+    }
+
+    .message.ai {
+        justify-content: flex-start;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        position: relative;
+    }
+
+    .message.user .message-content {
+        background-color: #007bff;
+        color: white;
+        border-bottom-right-radius: 0.25rem;
+    }
+
+    .message.ai .message-content {
+        background-color: #f1f3f4;
+        color: #333;
+        border-bottom-left-radius: 0.25rem;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-top: 0.25rem;
+    }
+
+    .chat-input {
+        padding: 1rem;
+        border-top: 1px solid #e0e0e0;
+        background-color: #f8f9fa;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #007bff;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+
+    .quick-questions .btn {
+        margin: 0.1rem;
+    }
+</style>
+
 @code {
     private string userMessage = "";
-    private List<Message> messages = new();
+    private List<ChatMessage> messages = new();
+    private bool isTyping = false;
 
     private async Task SendMessage()
     {
         if (!string.IsNullOrWhiteSpace(userMessage))
         {
-            messages.Add(new Message { Text = userMessage, IsUser = true });
+            messages.Add(new ChatMessage { Text = userMessage, IsUser = true });
             var input = userMessage;
             userMessage = "";
+            
+            isTyping = true;
+            StateHasChanged();
 
-            // Placeholder response logic
-            var aiResponse = await GetAIResponse(input);
-            messages.Add(new Message { Text = aiResponse, IsUser = false });
+            try
+            {
+                var aiResponse = await AiService.GetMovieAiResponseAsync(input);
+                messages.Add(new ChatMessage { Text = aiResponse, IsUser = false });
+            }
+            catch
+            {
+                messages.Add(new ChatMessage { Text = "Sorry, I'm having trouble connecting right now. Please try again later.", IsUser = false });
+            }
+            finally
+            {
+                isTyping = false;
+                StateHasChanged();
+            }
         }
     }
 
-    private Task<string> GetAIResponse(string input)
-    {
-        // Placeholder - Replace this with a real API call to your Python backend
-        return Task.FromResult("AI response placeholder for: " + input);
-    }
-
-    private void HandleKeyDown(KeyboardEventArgs e)
+    private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter" && !e.ShiftKey)
         {
-            SendMessage();
+            await SendMessage();
         }
     }
 
-    private class Message
+    private void SetQuickQuestion(string question)
     {
-        public string Text { get; set; }
-        public bool IsUser { get; set; }
+        userMessage = question;
+        StateHasChanged();
     }
 }

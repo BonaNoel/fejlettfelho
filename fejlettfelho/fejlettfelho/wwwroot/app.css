@@ -1,5 +1,6 @@
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
 }
 
 a, .btn-link {
@@ -10,6 +11,12 @@ a, .btn-link {
     color: #fff;
     background-color: #1b6ec2;
     border-color: #1861ac;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #1558a0;
+    transform: translateY(-1px);
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
@@ -34,6 +41,126 @@ h1:focus {
 
 .validation-message {
     color: #e50000;
+}
+
+/* Movie App Specific Styles */
+.home-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.hero-section {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 3rem 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    margin-bottom: 3rem;
+}
+
+.movie-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.movie-poster {
+    height: 300px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.movie-poster-placeholder {
+    height: 300px;
+    background-color: #e9ecef;
+    color: #6c757d;
+}
+
+.search-section .input-group-lg {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.search-section .form-control {
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.search-section .btn {
+    border-radius: 0;
+    padding: 1rem 2rem;
+}
+
+.quick-actions .card {
+    border: none;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.quick-actions .card:hover {
+    transform: translateY(-3px);
+}
+
+.ai-response .card {
+    border-left: 4px solid #007bff;
+    background-color: #f8f9fa;
+}
+
+.movie-details .card {
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 15px;
+}
+
+/* Loading Animation */
+.spinner-border {
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .home-container {
+        padding: 1rem;
+    }
+    
+    .hero-section {
+        padding: 2rem 1rem;
+    }
+    
+    .movie-poster {
+        height: 250px;
+    }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #ffffff;
+    }
+    
+    .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    
+    .hero-section {
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    }
 }
 
 .blazor-error-boundary {

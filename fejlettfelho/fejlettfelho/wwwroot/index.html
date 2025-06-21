@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Hub - AI Assistant</title>
+    <base href="/" />
+    <link href="lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="app.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+          .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .nav-pills {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .content {
+            padding: 2rem;
+            min-height: 500px;
+            background: white;
+            color: #333;
+        }
+        
+        .movie-card {
+            transition: transform 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        .movie-poster {
+            height: 300px;
+            object-fit: cover;
+        }
+        
+        .search-box {
+            border-radius: 25px;
+            border: 2px solid #dee2e6;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .search-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .chat-message {
+            margin-bottom: 1rem;
+        }
+        
+        .chat-message.user {
+            text-align: right;
+        }
+        
+        .chat-message .message-bubble {
+            display: inline-block;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .chat-message.user .message-bubble {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .chat-message.ai .message-bubble {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #333;
+        }
+          .feature-card {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            height: 100%;
+            color: #333;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Additional text color fixes */
+        h1, h2, h3, h4, h5, h6 {
+            color: #333;
+        }
+        
+        p, .lead {
+            color: #555;
+        }
+        
+        .page {
+            color: #333;
+        }
+        
+        .text-muted {
+            color: #6c757d !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="display-4 mb-0">🎬 Movie Hub</h1>
+            <p class="lead mb-0">AI-Powered Movie Discovery Platform</p>
+        </div>
+        
+        <div class="nav-pills">
+            <ul class="nav nav-pills nav-fill">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#home" onclick="showPage('home')">🏠 Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#chat" onclick="showPage('chat')">💬 AI Chat</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#quiz" onclick="showPage('quiz')">🎲 Movie Quiz</a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="content">
+            <!-- Home Page -->
+            <div id="home-page" class="page">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2 class="text-center mb-4">Discover Movies & Ask AI Questions</h2>
+                        <div class="row justify-content-center">
+                            <div class="col-md-8">
+                                <div class="input-group input-group-lg">
+                                    <input type="text" id="searchInput" class="form-control search-box" 
+                                           placeholder="Search movies or ask questions like 'What are the best sci-fi movies?'">
+                                    <button class="btn btn-primary px-4" onclick="handleSearch()">
+                                        Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="searchResults" class="row"></div>
+                <div id="aiResponse" class="mt-4"></div>
+                
+                <div class="row mt-5">
+                    <div class="col-md-4 mb-3">
+                        <div class="feature-card">
+                            <div class="feature-icon">🎭</div>
+                            <h5>Movie Search</h5>
+                            <p>Search our vast database of movies, actors, and directors</p>
+                            <button class="btn btn-primary" onclick="searchMovies('Marvel')">Try Marvel Movies</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="feature-card">
+                            <div class="feature-icon">🤖</div>
+                            <h5>AI Assistant</h5>
+                            <p>Get personalized recommendations and movie insights</p>
+                            <button class="btn btn-primary" onclick="askAI('Recommend me a good comedy movie')">Get Recommendations</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="feature-card">
+                            <div class="feature-icon">🎬</div>
+                            <h5>Movie Details</h5>
+                            <p>Get comprehensive information about any movie</p>
+                            <button class="btn btn-primary" onclick="searchMovies('The Dark Knight')">View Example</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Page -->
+            <div id="chat-page" class="page" style="display: none;">
+                <h2 class="text-center mb-4">🤖 AI Movie Assistant</h2>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div id="chatMessages" style="height: 400px; overflow-y: auto; padding: 1rem; background: #f8f9fa; border-radius: 10px; margin-bottom: 1rem;">
+                            <div class="chat-message ai">
+                                <div class="message-bubble">
+                                    <strong>AI Assistant:</strong> Hello! I'm your movie AI assistant. Ask me about movies, actors, directors, or get recommendations!
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="chatInput" class="form-control" placeholder="Ask me about movies..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                            <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-muted">Try asking:</p>
+                            <button class="btn btn-outline-secondary btn-sm me-2" onclick="setChatMessage('Recommend me a good action movie')">Action Movies</button>
+                            <button class="btn btn-outline-secondary btn-sm me-2" onclick="setChatMessage('Tell me about Christopher Nolan')">Directors</button>
+                            <button class="btn btn-outline-secondary btn-sm me-2" onclick="setChatMessage('What are the best movies of 2023?')">Recent Movies</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+              <!-- Quiz Page -->
+            <div id="quiz-page" class="page" style="display: none;">
+                <h2 class="text-center mb-4">🎲 AI-Powered Movie Quiz</h2>
+                <div class="row justify-content-center">
+                    <div class="col-md-10">
+                        <!-- Quiz Controls -->
+                        <div id="quiz-controls" class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Customize Your Quiz</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="quiz-difficulty" class="form-label">Difficulty:</label>
+                                        <select id="quiz-difficulty" class="form-select">
+                                            <option value="easy">Easy</option>
+                                            <option value="medium" selected>Medium</option>
+                                            <option value="hard">Hard</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="quiz-category" class="form-label">Category:</label>
+                                        <select id="quiz-category" class="form-select">
+                                            <option value="general" selected>General Movies</option>
+                                            <option value="actors">Actors & Actresses</option>
+                                            <option value="directors">Directors</option>
+                                            <option value="genres">Movie Genres</option>
+                                            <option value="decades">Movies by Decade</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="quiz-num-questions" class="form-label">Questions:</label>
+                                        <select id="quiz-num-questions" class="form-select">
+                                            <option value="3">3 Questions</option>
+                                            <option value="5" selected>5 Questions</option>
+                                            <option value="10">10 Questions</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-success btn-lg" onclick="generateAIQuiz()">🤖 Generate AI Quiz</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="quizContent">
+                            <div class="text-center">
+                                <h4>Test Your Movie Knowledge with AI!</h4>
+                                <p>Our AI will generate personalized quiz questions based on your preferences. Each quiz is unique and tailored to challenge your movie knowledge!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>        // AI Quiz Variables
+        let aiQuizQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = '';
+
+        // Static fallback questions (in case AI fails)
+        const fallbackQuestions = [
+            {
+                question: "Which movie won the Academy Award for Best Picture in 1994?",
+                options: ["Forrest Gump", "Pulp Fiction", "The Shawshank Redemption", "Four Weddings and a Funeral"],
+                correct_answer: "Forrest Gump",
+                explanation: "Forrest Gump won the 1995 Academy Award for Best Picture, beating other acclaimed films of 1994."
+            },
+            {
+                question: "Who directed the movie 'Inception' (2010)?",
+                options: ["Steven Spielberg", "Christopher Nolan", "Denis Villeneuve", "David Fincher"],
+                correct_answer: "Christopher Nolan",
+                explanation: "Christopher Nolan wrote and directed Inception, known for his complex, mind-bending narratives."
+            },
+            {
+                question: "Which actor played the Joker in 'The Dark Knight' (2008)?",
+                options: ["Joaquin Phoenix", "Jack Nicholson", "Heath Ledger", "Jared Leto"],
+                correct_answer: "Heath Ledger",
+                explanation: "Heath Ledger's posthumous performance as the Joker earned him an Academy Award for Best Supporting Actor."
+            }
+        ];
+
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId + '-page').style.display = 'block';
+            
+            // Add active class to clicked nav link
+            event.target.classList.add('active');
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+            
+            // Check if it's a question or movie search
+            const questionWords = ['what', 'who', 'when', 'where', 'why', 'how', 'tell me', 'explain', 'recommend'];
+            const isQuestion = questionWords.some(word => query.toLowerCase().includes(word)) || query.includes('?');
+            
+            if (isQuestion) {
+                askAI(query);
+            } else {
+                searchMovies(query);
+            }
+        }
+
+        async function searchMovies(query) {
+            document.getElementById('searchResults').innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary"></div><p>Searching movies...</p></div>';
+            document.getElementById('aiResponse').innerHTML = '';
+            
+            try {
+                const response = await fetch(`https://www.omdbapi.com/?apikey=abc7180d&s=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.Response === 'True' && data.Search) {
+                    displayMovies(data.Search.slice(0, 6));
+                } else {
+                    document.getElementById('searchResults').innerHTML = '<div class="col-12"><div class="alert alert-info">No movies found. Try a different search term.</div></div>';
+                }
+            } catch (error) {
+                document.getElementById('searchResults').innerHTML = '<div class="col-12"><div class="alert alert-danger">Error searching movies. Please try again.</div></div>';
+            }
+        }
+
+        function displayMovies(movies) {
+            const resultsHtml = movies.map(movie => `
+                <div class="col-md-4 mb-4">
+                    <div class="card movie-card h-100">
+                        ${movie.Poster !== 'N/A' ? 
+                            `<img src="${movie.Poster}" class="card-img-top movie-poster" alt="${movie.Title}">` :
+                            `<div class="card-img-top movie-poster d-flex align-items-center justify-content-center bg-light">
+                                <span class="text-muted">No Poster</span>
+                            </div>`
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">${movie.Title}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">${movie.Year}</small><br>
+                                <span class="badge bg-secondary">${movie.Type}</span>
+                            </p>
+                            <button class="btn btn-outline-primary btn-sm" onclick="getMovieDetails('${movie.Title}')">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('searchResults').innerHTML = resultsHtml;
+        }
+
+        async function getMovieDetails(title) {
+            try {
+                const response = await fetch(`https://www.omdbapi.com/?apikey=abc7180d&t=${encodeURIComponent(title)}&plot=full`);
+                const movie = await response.json();
+                
+                if (movie.Response === 'True') {
+                    const detailsHtml = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>${movie.Title} (${movie.Year})</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    ${movie.Poster !== 'N/A' ? 
+                                        `<div class="col-md-3">
+                                            <img src="${movie.Poster}" class="img-fluid rounded" alt="${movie.Title}">
+                                        </div>` : ''
+                                    }
+                                    <div class="col-md-9">
+                                        <p><strong>Director:</strong> ${movie.Director}</p>
+                                        <p><strong>Actors:</strong> ${movie.Actors}</p>
+                                        <p><strong>Genre:</strong> ${movie.Genre}</p>
+                                        <p><strong>Runtime:</strong> ${movie.Runtime}</p>
+                                        <p><strong>Released:</strong> ${movie.Released}</p>
+                                        ${movie.imdbRating ? `<p><strong>IMDB Rating:</strong> ${movie.imdbRating}/10</p>` : ''}
+                                        ${movie.Plot ? `<p><strong>Plot:</strong> ${movie.Plot}</p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('aiResponse').innerHTML = detailsHtml;
+                }
+            } catch (error) {
+                console.error('Error getting movie details:', error);
+            }
+        }
+
+        async function askAI(question) {
+            document.getElementById('aiResponse').innerHTML = '<div class="alert alert-info"><div class="spinner-border spinner-border-sm me-2"></div>AI is thinking...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:5000/ai/movie', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        language: 'English',
+                        model_name: 'gpt-3.5-turbo'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                const aiHtml = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>🤖 AI Assistant Response</h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0">${data.response || data}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('aiResponse').innerHTML = aiHtml;
+            } catch (error) {
+                document.getElementById('aiResponse').innerHTML = '<div class="alert alert-danger">Sorry, I couldn\'t connect to the AI service. Please make sure the Python API is running.</div>';
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            addChatMessage(message, true);
+            input.value = '';
+            
+            // Get AI response
+            try {
+                const response = await fetch('http://localhost:5000/ai/movie', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: message,
+                        language: 'English',
+                        model_name: 'gpt-3.5-turbo'
+                    })
+                });
+                
+                const data = await response.json();
+                addChatMessage(data.response || data, false);
+            } catch (error) {
+                addChatMessage("Sorry, I'm having trouble connecting right now. Please try again later.", false);
+            }
+        }
+
+        function addChatMessage(message, isUser) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isUser ? 'user' : 'ai'}`;
+            messageDiv.innerHTML = `
+                <div class="message-bubble">
+                    ${!isUser ? '<strong>AI:</strong> ' : ''}${message}
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function setChatMessage(message) {
+            document.getElementById('chatInput').value = message;
+        }        async function generateAIQuiz() {
+            const difficulty = document.getElementById('quiz-difficulty').value;
+            const category = document.getElementById('quiz-category').value;
+            const numQuestions = parseInt(document.getElementById('quiz-num-questions').value);
+            
+            // Show loading state
+            document.getElementById('quizContent').innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4>🤖 AI is generating your personalized quiz...</h4>
+                    <p class="text-muted">Creating ${numQuestions} ${difficulty} questions about ${category} movies</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('http://localhost:5000/ai/quiz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        difficulty: difficulty,
+                        category: category,
+                        num_questions: numQuestions
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate quiz');
+                }
+                
+                const data = await response.json();
+                
+                if (data.questions && data.questions.length > 0) {
+                    aiQuizQuestions = data.questions;
+                    currentQuestionIndex = 0;
+                    score = 0;
+                    showAIQuestion();
+                } else {
+                    throw new Error('No questions generated');
+                }
+                
+            } catch (error) {
+                console.error('Error generating AI quiz:', error);
+                // Fallback to static questions
+                aiQuizQuestions = fallbackQuestions.slice(0, numQuestions);
+                currentQuestionIndex = 0;
+                score = 0;
+                
+                document.getElementById('quizContent').innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>⚠️ AI Quiz Unavailable</strong><br>
+                        The AI quiz generator is currently unavailable. Here's a fallback quiz with ${aiQuizQuestions.length} questions!
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    showAIQuestion();
+                }, 2000);
+            }
+        }
+
+        function showAIQuestion() {
+            if (currentQuestionIndex >= aiQuizQuestions.length) {
+                showAIQuizResults();
+                return;
+            }
+            
+            const question = aiQuizQuestions[currentQuestionIndex];
+            const quizHtml = `
+                <div class="quiz-question">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>Question ${currentQuestionIndex + 1} of ${aiQuizQuestions.length}</h4>
+                        <div class="badge bg-primary">Score: ${score}/${currentQuestionIndex}</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="lead card-text">${question.question}</p>
+                            <div class="options">
+                                ${question.options.map((option, index) => `
+                                    <button class="btn btn-outline-primary d-block w-100 mb-2" onclick="selectAIAnswer('${option.replace(/'/g, "\\'")}')">
+                                        ${String.fromCharCode(65 + index)}. ${option}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('quizContent').innerHTML = quizHtml;
+        }
+
+        function selectAIAnswer(answer) {
+            selectedAnswer = answer;
+            const question = aiQuizQuestions[currentQuestionIndex];
+            const isCorrect = answer === question.correct_answer;
+            
+            if (isCorrect) {
+                score++;
+            }
+            
+            // Update button styles
+            const buttons = document.querySelectorAll('.options button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                const buttonText = btn.textContent.trim().substring(3); // Remove "A. ", "B. ", etc.
+                if (buttonText === question.correct_answer) {
+                    btn.classList.remove('btn-outline-primary');
+                    btn.classList.add('btn-success');
+                } else if (buttonText === answer && !isCorrect) {
+                    btn.classList.remove('btn-outline-primary');
+                    btn.classList.add('btn-danger');
+                }
+            });
+            
+            // Show explanation and next button
+            setTimeout(() => {
+                const explanationHtml = `
+                    <div class="alert ${isCorrect ? 'alert-success' : 'alert-danger'} mt-3">
+                        <strong>${isCorrect ? '✅ Correct!' : '❌ Incorrect'}</strong><br>
+                        ${question.explanation}
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-primary" onclick="nextAIQuestion()">
+                            ${currentQuestionIndex + 1 >= aiQuizQuestions.length ? 'Show Results' : 'Next Question'} →
+                        </button>
+                    </div>
+                `;
+                
+                document.querySelector('.quiz-question').innerHTML += explanationHtml;
+            }, 1000);
+        }
+
+        function nextAIQuestion() {
+            currentQuestionIndex++;
+            showAIQuestion();
+        }
+
+        function showAIQuizResults() {
+            const percentage = Math.round((score / aiQuizQuestions.length) * 100);
+            let performance = '';
+            let emoji = '';
+            
+            if (percentage >= 90) {
+                performance = 'Outstanding! 🏆';
+                emoji = '🎉';
+            } else if (percentage >= 70) {
+                performance = 'Great job! 👏';
+                emoji = '😊';
+            } else if (percentage >= 50) {
+                performance = 'Not bad! 👍';
+                emoji = '😐';
+            } else {
+                performance = 'Keep learning! 📚';
+                emoji = '😅';
+            }
+            
+            const resultsHtml = `
+                <div class="text-center">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3>${emoji} Quiz Complete!</h3>
+                            <h4>${performance}</h4>
+                            <div class="display-4 text-primary mb-3">${score}/${aiQuizQuestions.length}</div>
+                            <div class="display-6 text-muted">${percentage}%</div>
+                            <div class="mt-4">
+                                <button class="btn btn-success btn-lg me-2" onclick="generateAIQuiz()">🤖 New AI Quiz</button>
+                                <button class="btn btn-outline-primary btn-lg" onclick="showPage('home')">🏠 Home</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+              document.getElementById('quizContent').innerHTML = resultsHtml;
+        }
+
+        // Allow Enter key for search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+    </script>
+</body>
+</html>
