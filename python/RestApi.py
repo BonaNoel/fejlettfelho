@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from openai import OpenAI
@@ -26,7 +27,8 @@ def search_movie_omdb(query):
     try:
         response = requests.get(f"{OMDB_BASE_URL}?apikey={OMDB_API_KEY}&s={query}")
         return response.json()
-    except:
+    except Exception as e:
+        print(f"OMDB Search Error: {e}")
         return None
 
 def get_movie_details_omdb(title):
@@ -34,7 +36,8 @@ def get_movie_details_omdb(title):
     try:
         response = requests.get(f"{OMDB_BASE_URL}?apikey={OMDB_API_KEY}&t={title}&plot=full")
         return response.json()
-    except:
+    except Exception as e:
+        print(f"OMDB Details Error: {e}")
         return None
 
 @app.route('/ai/movie', methods=['POST'])
@@ -42,7 +45,7 @@ def get_movie_ai_response():
     data = request.json
     question = data.get('question')
     language = data.get('language', 'English')
-    model_name = data.get('model_name', 'gpt-3.5-turbo')
+    model_name = data.get('model_name', 'gpt-4o-mini')
     
     # Create a movie-specific system prompt
     system_prompt = f"""You are a helpful movie assistant that can answer questions about movies, actors, directors, and film industry. 
@@ -87,7 +90,7 @@ def getAiByPost():
     data = request.json
     question = data.get('question')
     language = data.get('language', 'English')
-    model_name = data.get('model_name', 'gpt-3.5-turbo')
+    model_name = data.get('model_name', 'gpt-4o-mini')
     system_prompt = "Always answer in " + language
     
     client = OpenAI()
@@ -149,7 +152,7 @@ def generate_quiz():
         client = OpenAI()
         
         response = client.chat.completions.create(
-            model='gpt-3.5-turbo',
+            model='gpt-4o-mini',
             messages=[
                 {"role": "system", "content": "You are a movie trivia expert who creates engaging and accurate quiz questions. Always respond with valid JSON format."},
                 {"role": "user", "content": quiz_prompt}
@@ -159,7 +162,6 @@ def generate_quiz():
         )
         
         # Parse the AI response as JSON
-        import json
         quiz_data = json.loads(response.choices[0].message.content)
         
         return jsonify(quiz_data)

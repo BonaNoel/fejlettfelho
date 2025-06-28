@@ -63,6 +63,7 @@ obj/
 *_REMOTE_*.txt
 
 ### VisualStudioCode ###
+.vs
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
