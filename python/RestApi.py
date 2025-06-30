@@ -172,5 +172,43 @@ def generate_quiz():
         print(f"Quiz Error: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/omdb/search', methods=['POST'])
+def search_movies():
+    """Search for movies using OMDB API"""
+    data = request.json
+    query = data.get('query')
+    
+    if not query:
+        return jsonify({"error": "Query parameter is required"}), 400
+    
+    try:
+        result = search_movie_omdb(query)
+        if result:
+            return jsonify(result)
+        else:
+            return jsonify({"error": "Failed to search movies"}), 500
+    except Exception as e:
+        print(f"Search movies error: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+@app.route('/omdb/details', methods=['POST'])
+def get_movie_details():
+    """Get detailed movie information from OMDB API"""
+    data = request.json
+    title = data.get('title')
+    
+    if not title:
+        return jsonify({"error": "Title parameter is required"}), 400
+    
+    try:
+        result = get_movie_details_omdb(title)
+        if result:
+            return jsonify(result)
+        else:
+            return jsonify({"error": "Failed to get movie details"}), 500
+    except Exception as e:
+        print(f"Get movie details error: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
